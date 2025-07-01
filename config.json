@@ -1,0 +1,19 @@
+{
+  "api_keys": {
+    "google_reverse_image_search": "YOUR_API_KEY_HERE"
+  },
+  "tool_paths": {
+    "exiftool": "/usr/bin/exiftool",
+    "zsteg": "/usr/local/bin/zsteg",
+    "steghide": "/usr/bin/steghide",
+    "binwalk": "/usr/bin/binwalk"
+  },
+  "output_settings": {
+    "output_directory": "./output",
+    "log_file": "./logs/big_sister.log"
+  },
+  "image_search_settings": {
+    "max_results": 10,
+    "search_timeout": 5
+  }
+}
