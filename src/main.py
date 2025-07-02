@@ -2,39 +2,26 @@ import sys
 from metadata.scraper import MetadataScraper
 from metadata.parser import MetadataParser
 from iris.image_search import ImageSearch
+from utils.terminal import terminal
+from utils.gui import startGUI
 
 def main():
-    # Initialize the metadata scraper and parser
-    scraper = MetadataScraper()
-    parser = MetadataParser()
+    print("=== Big Sister - Metadata and Image Analysis Tool ===")
+    print("Choose your interface:")
+    print("1. GUI (Graphical User Interface)")
+    print("2. Terminal (Command Line Interface)")
 
-    # Get user input for the file to analyze
-    file_path = input("Enter the path of the file to analyze: ")
-
-    # Scrape metadata from the file
-    metadata_output = scraper.scrape(file_path)
-
-    # Parse the scraped metadata
-    parsed_data = parser.parse(metadata_output)
-
-    # Display the parsed information
-    print("Parsed Metadata:")
-    for key, value in parsed_data.items():
-        print(f"{key}: {value}")
-
-    # Initialize the image search module
-    image_search = ImageSearch()
-
-    # Get user input for the image to search
-    image_path = input("Enter the path of the image to search: ")
-
-    # Perform reverse image search
-    search_results = image_search.search(image_path)
-
-    # Display the search results
-    print("Image Search Results:")
-    for result in search_results:
-        print(result)
+    while True:
+        choice = input("Enter 1 or 2: ").strip()
+        if choice == '1':
+            startGUI()
+            break
+        elif choice == '2':
+            terminal()
+            break
+        else:
+            print("Invalid choice. Please enter 1 or 2.")
+    
 
 if __name__ == "__main__":
     main()
