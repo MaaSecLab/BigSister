@@ -1,25 +1,62 @@
 class MetadataScraper:
     def __init__(self):
-        self.tools = {
-            'exiftool': 'exiftool',
-            'zsteg': 'zsteg',
-            'steghide': 'steghide',
-            'binwalk': 'binwalk'
-        }
-
-    def call_tool(self, tool, file_path):
-        import subprocess
+        """Initialize the MetadataScraper."""
+        pass
+    
+    def scrape(self, file_path):
+        """
+        Scrape metadata from the given file path.
+        
+        Args:
+            file_path (str): Path to the image file to analyze
+            
+        Returns:
+            dict: Dictionary containing all scraped metadata
+        """
+        from PIL import Image
+        from PIL.ExifTags import TAGS
+        
         try:
-            result = subprocess.run([self.tools[tool], file_path], capture_output=True, text=True)
-            return result.stdout
+            # Open the image file
+            image = Image.open(file_path)
+            
+            # Basic image information
+            info_dict = {
+                "Filename": image.filename,
+                "Image Size": image.size,
+                "Image Height": image.height,
+                "Image Width": image.width,
+                "Image Format": image.format,
+                "Image Mode": image.mode,
+            }
+            
+            # Get EXIF data
+            exifdata = image._getexif()
+            
+            # Parse EXIF data if available
+            if exifdata:
+                for tag_id in exifdata:
+                    # Get the tag name, instead of human unreadable tag id
+                    tag = TAGS.get(tag_id, tag_id)
+                    data = exifdata.get(tag_id)
+                    # Decode bytes if necessary
+                    if isinstance(data, bytes):
+                        data = data.decode()
+                    info_dict[tag] = data
+            
+            return info_dict
+            
         except Exception as e:
-            print(f"Error calling {tool}: {e}")
-            return None
-
-    def scrape_metadata(self, file_path):
-        metadata = {}
-        for tool in self.tools.keys():
-            output = self.call_tool(tool, file_path)
-            if output:
-                metadata[tool] = output
-        return metadata
+            return {"Error": f"Failed to scrape metadata: {str(e)}"}
+    
+    def display_metadata(self, metadata):
+        """
+        Display metadata in a formatted way.
+        
+        Args:
+            metadata (dict): Dictionary containing metadata to display
+        """
+        print("\n=== Metadata Information ===")
+        for label, value in metadata.items():
+            print(f"{label:25}: {value}")
+        print("=" * 50)
