@@ -1,5 +1,5 @@
 import sys
-from metadata.scraper import MetadataScraper
+from metadata.exiftool_scraper import MetadataScraper
 from metadata.parser import MetadataParser
 from iris.image_search import ImageSearch
 from utils.terminal import terminal

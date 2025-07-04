@@ -4,7 +4,7 @@ import os
 # Add the parent directory to the Python path to enable relative imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from metadata.scraper import MetadataScraper
+from metadata.exiftool_scraper import MetadataScraper
 from metadata.parser import MetadataParser
 from iris.image_search import ImageSearch
 
