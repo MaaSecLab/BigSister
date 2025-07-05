@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 binwalk_scraper.py
 
@@ -69,14 +70,15 @@ class BinwalkScraper:
             dict: {'Signatures': [ {'Offset':..., 'Description':...}, ... ] }
         """
         signatures = []
-        line_pattern = re.compile(r"^([0-9A-Fa-fx]+):\s*(.+)$")
+        # Match lines with decimal offset, hex offset, then description
+        line_pattern = re.compile(r'^\s*(\d+)\s+0x[0-9A-Fa-f]+\s+(.+)$')
 
         for line in output.splitlines():
-            match = line_pattern.match(line.strip())
-            if match:
+            m = line_pattern.match(line)
+            if m:
                 signatures.append({
-                    "Offset": match.group(1),
-                    "Description": match.group(2).strip()
+                    "Offset": m.group(1),
+                    "Description": m.group(2).strip()
                 })
 
         return {"Signatures": signatures}

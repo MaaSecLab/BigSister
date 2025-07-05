@@ -99,3 +99,8 @@ A Python class `MetadataParser` that:
 ---
 
 All modules are now wired together through `main.py`, providing a clear metadata “scraper → parser → output” flow for images and files.
+
+
+After testing:
+
+All core scrapers (EXIF via ExifTool/Pillow, Zsteg, Binwalk) and their Python wrappers are fully implemented and parsed by the unified regex-based parser, and the main entrypoint chains EXIF → Steghide → Binwalk with CLI/GUI options. Only the Steghide wrapper still needs its flag syntax aligned under WSL before it behaves correctly.

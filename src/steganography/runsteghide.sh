@@ -49,61 +49,35 @@ EOF
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -p|--passphrase)
-      if [[ $# -lt 2 ]]; then
-        echo "Error: --passphrase requires an argument." >&2
-        usage
-      fi
-      PASS="$2"
-      shift 2
-      ;;
+      [[ $# -lt 2 ]] && { echo "Error: --passphrase requires an argument." >&2; usage; }
+      PASS="$2"; shift 2;;
     -o|--output-dir)
-      if [[ $# -lt 2 ]]; then
-        echo "Error: --output-dir requires an argument." >&2
-        usage
-      fi
-      OUTDIR="$2"
-      shift 2
-      ;;
+      [[ $# -lt 2 ]] && { echo "Error: --output-dir requires an argument." >&2; usage; }
+      OUTDIR="$2"; shift 2;;
     -i|--info)
-      INFO_ONLY=true
-      shift
-      ;;
+      INFO_ONLY=true; shift;;
     -h|--help)
-      usage
-      ;;
-    --) # end of options
-      shift
-      break
-      ;;
+      usage;;
+    --) shift; break;;
     -*)
-      echo "Unknown option: $1" >&2
-      usage
-      ;;
+      echo "Unknown option: $1" >&2; usage;;
     *)
-      STEGO_FILE="$1"
-      shift
-      ;;
+      STEGO_FILE="$1"; shift;;
   esac
 done
 
-if [[ -z "${STEGO_FILE:-}" ]]; then
-  echo "Error: No stego file specified." >&2
-  usage
-fi
+# Validate
+[[ -z "${STEGO_FILE:-}" ]] && { echo "Error: No stego file specified." >&2; usage; }
+[[ ! -f "$STEGO_FILE" ]] && { echo "Error: File not found: $STEGO_FILE" >&2; exit 2; }
 
-if [[ ! -f "$STEGO_FILE" ]]; then
-  echo "Error: File not found: $STEGO_FILE" >&2
-  exit 2
-fi
-
-# Info mode
+# Info mode (no -sf here!)
 if [[ "$INFO_ONLY" = true ]]; then
   echo "== Steghide Info for '$STEGO_FILE' =="
   if [[ -n "$PASS" ]]; then
     echo "(using passphrase)"
-    printf "%s\n" "$PASS" | "$STEGHIDE" info -v "$STEGO_FILE"
+    printf "%s\n" "$PASS" | "$STEGHIDE" info -v -sf "$STEGO_FILE"
   else
-    "$STEGHIDE" info -v "$STEGO_FILE"
+    "$STEGHIDE" info -v -sf "$STEGO_FILE"
   fi
   exit 0
 fi
@@ -122,3 +96,6 @@ fi
 
 popd >/dev/null
 echo "Extraction complete. Files (if any) are in '$OUTDIR'."
+
+
+#madamada
