@@ -17,15 +17,15 @@ class BigSisterGUI(tk.Tk):
         self.minsize(950, 600)
         self.current_file = None
         self.is_dark_mode = False  # Track dark mode state
-        self._set_theme()
+        self._set_theme()  # Apply the initial theme
         self._build_layout()
 
     def _set_theme(self):
         style = ttk.Style(self)
         style.theme_use("clam")
 
+        # Define colors based on the theme
         if self.is_dark_mode:
-            # Dark Mode Style
             bg = "#2c3e50"
             fg = "#ecf0f1"
             accent = "#3498db"
@@ -37,7 +37,6 @@ class BigSisterGUI(tk.Tk):
             button_bg = "#34495e"
             button_fg = "#ecf0f1"
         else:
-            # Light Mode Style
             bg = "#e6ebf2"
             fg = "#2c3e50"
             accent = "#3498db"
@@ -49,6 +48,7 @@ class BigSisterGUI(tk.Tk):
             button_bg = "#ecf0f1"
             button_fg = "#2c3e50"
 
+        # Apply styles
         style.configure("TFrame", background=bg)
         style.configure("TLabel", background=bg, font=font_main, foreground=fg)
         style.configure("Header.TLabel", font=font_header, foreground=fg)
@@ -63,6 +63,7 @@ class BigSisterGUI(tk.Tk):
         self.textbox_fg = text_fg
 
     def _build_layout(self):
+        # Set up the header and title
         header = ttk.Frame(self)
         header.pack(fill="x", padx=20, pady=(20, 5))
         ttk.Label(header, text="🕵️ Big Sister", style="Header.TLabel").pack(side="left")
@@ -72,6 +73,7 @@ class BigSisterGUI(tk.Tk):
         btn_dark_mode = ttk.Button(header, text="🌙 Dark Mode" if not self.is_dark_mode else "🌞 Light Mode", command=self.toggle_dark_mode)
         btn_dark_mode.pack(side="right", padx=20)
 
+        # Create the main control panel with a paned window layout
         paned = ttk.PanedWindow(self, orient="horizontal")
         paned.pack(fill="both", expand=True, padx=20, pady=10)
 
@@ -79,9 +81,9 @@ class BigSisterGUI(tk.Tk):
         ctrl_frame.pack_propagate(False)
         paned.add(ctrl_frame, weight=1)
 
+        # File selection and action buttons
         ttk.Label(ctrl_frame, text="📁 Select Image", style="SubHeader.TLabel").pack(anchor="w", pady=(10, 5))
         ttk.Button(ctrl_frame, text="Browse...", command=self._browse_file).pack(fill="x")
-
         self.lbl_file = ttk.Label(ctrl_frame, text="No file selected", wraplength=230)
         self.lbl_file.pack(fill="x", pady=(5, 15))
 
@@ -100,9 +102,11 @@ class BigSisterGUI(tk.Tk):
             btn.pack(fill="x", pady=4)
             self.action_buttons.append(btn)
 
+        # Notebook for tabs
         self.notebook = ttk.Notebook(paned)
         paned.add(self.notebook, weight=4)
 
+        # Create all tabs for the notebook
         self._add_text_tab("Metadata", "txt_meta")
         self._add_image_tab()
         self._add_text_tab("Steghide", "txt_steg")
@@ -130,6 +134,9 @@ class BigSisterGUI(tk.Tk):
         self.lbl_file.config(text=os.path.basename(path))
         for btn in self.action_buttons:
             btn.state(["!disabled"])
+
+        # Display image immediately after selecting
+        self._view_image()
 
     def _view_image(self):
         if not self.current_file:
@@ -205,9 +212,27 @@ class BigSisterGUI(tk.Tk):
         self._clear_and_rebuild_layout()  # Rebuild layout only when switching mode
 
     def _clear_and_rebuild_layout(self):
+        # Save the current selected file, tab, and other state before rebuilding the layout
+        file = self.current_file
+        selected_tab = self.notebook.index(self.notebook.select())  # Save the current tab index
+
+        # Rebuild the layout (clearing and re-adding widgets)
         for widget in self.winfo_children():
-            widget.destroy()  # Clear existing widgets
-        self._build_layout()  # Rebuild the layout from scratch
+            widget.destroy()
+
+        # Rebuild the layout
+        self._build_layout()
+
+        # Restore the file selection and tab
+        self.current_file = file
+
+        # If the current_file is not None, update the label
+        if self.current_file:
+            self.lbl_file.config(text=os.path.basename(file))
+        else:
+            self.lbl_file.config(text="No file selected")  # Set default text if no file is selected
+
+        self.notebook.select(selected_tab)  # Restore the selected tab
 
 
 def startGUI():
