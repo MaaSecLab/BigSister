@@ -14,9 +14,9 @@ class BigSisterGUI(tk.Tk):
         super().__init__()
         self.title("🕵️‍♀️ Big Sister – OSINT Image Toolkit")
         self.geometry("1100x700")
-        self.configure(bg="#e6ebf2")
         self.minsize(950, 600)
         self.current_file = None
+        self.is_dark_mode = False  # Track dark mode state
         self._set_theme()
         self._build_layout()
 
@@ -24,27 +24,53 @@ class BigSisterGUI(tk.Tk):
         style = ttk.Style(self)
         style.theme_use("clam")
 
-        bg = "#e6ebf2"
-        fg = "#2c3e50"
-        accent = "#3498db"
-        font_main = ("Segoe UI", 11)
-        font_header = ("Segoe UI Semibold", 18)
-        font_subheader = ("Segoe UI", 12)
+        if self.is_dark_mode:
+            # Dark Mode Style
+            bg = "#2c3e50"
+            fg = "#ecf0f1"
+            accent = "#3498db"
+            font_main = ("Segoe UI", 11)
+            font_header = ("Segoe UI Semibold", 18)
+            font_subheader = ("Segoe UI", 12)
+            text_bg = "#34495e"
+            text_fg = "#ecf0f1"
+            button_bg = "#34495e"
+            button_fg = "#ecf0f1"
+        else:
+            # Light Mode Style
+            bg = "#e6ebf2"
+            fg = "#2c3e50"
+            accent = "#3498db"
+            font_main = ("Segoe UI", 11)
+            font_header = ("Segoe UI Semibold", 18)
+            font_subheader = ("Segoe UI", 12)
+            text_bg = "#ffffff"
+            text_fg = "#2c3e50"
+            button_bg = "#ecf0f1"
+            button_fg = "#2c3e50"
 
         style.configure("TFrame", background=bg)
         style.configure("TLabel", background=bg, font=font_main, foreground=fg)
         style.configure("Header.TLabel", font=font_header, foreground=fg)
         style.configure("SubHeader.TLabel", font=font_subheader, foreground="#7f8c8d")
-        style.configure("TButton", font=font_main, padding=8, relief="flat", background="#ecf0f1")
+        style.configure("TButton", font=font_main, padding=8, relief="flat", background=button_bg, foreground=button_fg)
         style.map("TButton",
                   background=[('active', accent)],
                   foreground=[('active', '#ffffff')])
+
+        # Customizing text box styles for dark mode
+        self.textbox_bg = text_bg
+        self.textbox_fg = text_fg
 
     def _build_layout(self):
         header = ttk.Frame(self)
         header.pack(fill="x", padx=20, pady=(20, 5))
         ttk.Label(header, text="🕵️ Big Sister", style="Header.TLabel").pack(side="left")
         ttk.Label(header, text="Image Metadata & Stego Analyzer", style="SubHeader.TLabel").pack(side="left", padx=15)
+
+        # Dark Mode Toggle Button
+        btn_dark_mode = ttk.Button(header, text="🌙 Dark Mode" if not self.is_dark_mode else "🌞 Light Mode", command=self.toggle_dark_mode)
+        btn_dark_mode.pack(side="right", padx=20)
 
         paned = ttk.PanedWindow(self, orient="horizontal")
         paned.pack(fill="both", expand=True, padx=20, pady=10)
@@ -85,14 +111,14 @@ class BigSisterGUI(tk.Tk):
 
     def _add_text_tab(self, label, attr_name):
         frame = ttk.Frame(self.notebook)
-        textbox = tk.Text(frame, wrap="word", bg="#ffffff", relief="flat", font=("Consolas", 10))
+        textbox = tk.Text(frame, wrap="word", bg=self.textbox_bg, relief="flat", font=("Consolas", 10), fg=self.textbox_fg)
         textbox.pack(fill="both", expand=True, padx=10, pady=10)
         setattr(self, attr_name, textbox)
         self.notebook.add(frame, text=label)
 
     def _add_image_tab(self):
         frame = ttk.Frame(self.notebook)
-        self.canvas = tk.Canvas(frame, background="#bdc3c7", relief="flat")
+        self.canvas = tk.Canvas(frame, background=self.textbox_bg, relief="flat")
         self.canvas.pack(fill="both", expand=True, padx=10, pady=10)
         self.notebook.add(frame, text="Image View")
 
@@ -172,6 +198,16 @@ class BigSisterGUI(tk.Tk):
                 self.txt_zsteg.insert("end", f"Error: {str(e)}")
         self.txt_zsteg.config(state="disabled")
         self.notebook.select(self.txt_zsteg.master)
+
+    def toggle_dark_mode(self):
+        self.is_dark_mode = not self.is_dark_mode  # Toggle the mode
+        self._set_theme()  # Apply the selected theme
+        self._clear_and_rebuild_layout()  # Rebuild layout only when switching mode
+
+    def _clear_and_rebuild_layout(self):
+        for widget in self.winfo_children():
+            widget.destroy()  # Clear existing widgets
+        self._build_layout()  # Rebuild the layout from scratch
 
 
 def startGUI():
