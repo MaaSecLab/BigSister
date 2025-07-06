@@ -17,7 +17,7 @@ from steganography.binwalk_scraper import BinwalkScraper
 from metadata.parser import MetadataParser
 
 # Reverse-image search
-from iris.image_search import ImageSearch
+from iris.image_search import ImageSearchIRIS
 
 # Interfaces
 from utils.gui import startGUI
@@ -89,7 +89,7 @@ def run_image_search(file_path: str):
     """
     Perform a reverse-image search on the given file and display results.
     """
-    searcher = ImageSearch()
+    searcher = ImageSearchIRIS()
     results = searcher.search_image(file_path)
     print("\n[ Reverse Image Search Results ]")
     searcher.display_results(results)
