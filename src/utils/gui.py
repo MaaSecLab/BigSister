@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
@@ -7,7 +8,7 @@ from metadata.parser import MetadataParser
 from metadata.exiftool_scraper import MetadataScraper
 from steganography.steghide_scraper import SteghideScraper
 from steganography.binwalk_scraper import BinwalkScraper
-
+from iris.image_search import ImageSearchIRIS
 
 class BigSisterGUI(tk.Tk):
     def __init__(self):
@@ -95,6 +96,7 @@ class BigSisterGUI(tk.Tk):
             ("🔐 Steghide Scan", self._show_steghide),
             ("🧩 Binwalk Scan", self._show_binwalk),
             ("🧬 Zsteg Scan", self._show_zsteg),
+            ("🔎 Reverse Image Search", self._show_image_search),
         ]
         self.action_buttons = []
         for label, command in buttons:
@@ -112,6 +114,7 @@ class BigSisterGUI(tk.Tk):
         self._add_text_tab("Steghide", "txt_steg")
         self._add_text_tab("Binwalk", "txt_binwalk")
         self._add_text_tab("Zsteg", "txt_zsteg")
+        self._add_image_search_tab()
 
     def _add_text_tab(self, label, attr_name):
         frame = ttk.Frame(self.notebook)
@@ -205,6 +208,208 @@ class BigSisterGUI(tk.Tk):
                 self.txt_zsteg.insert("end", f"Error: {str(e)}")
         self.txt_zsteg.config(state="disabled")
         self.notebook.select(self.txt_zsteg.master)
+
+    def _add_image_search_tab(self):
+        """Add a tab for reverse image search functionality"""
+        frame = ttk.Frame(self.notebook)
+        
+        # Create a frame for the search controls
+        control_frame = ttk.Frame(frame)
+        control_frame.pack(fill="x", padx=10, pady=10)
+        
+        # Status label
+        self.search_status = ttk.Label(control_frame, text="Ready to search", foreground="#7f8c8d")
+        self.search_status.pack(anchor="w", pady=(0, 5))
+        
+        # Button frame
+        button_frame = ttk.Frame(control_frame)
+        button_frame.pack(fill="x", pady=5)
+        
+        # Start search button
+        self.btn_start_search = ttk.Button(button_frame, text="🚀 Start Reverse Image Search", 
+                                          command=self._start_image_search, state="disabled")
+        self.btn_start_search.pack(side="left", padx=(0, 10))
+        
+        # Stop search button
+        self.btn_stop_search = ttk.Button(button_frame, text="🛑 Stop Search", 
+                                         command=self._stop_image_search, state="disabled")
+        self.btn_stop_search.pack(side="left")
+        
+        # Progress bar
+        self.search_progress = ttk.Progressbar(control_frame, mode='indeterminate')
+        self.search_progress.pack(fill="x", pady=5)
+        
+        # Results text area
+        textbox = tk.Text(frame, wrap="word", bg=self.textbox_bg, relief="flat", 
+                         font=("Consolas", 10), fg=self.textbox_fg)
+        textbox.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.txt_search = textbox
+        
+        self.notebook.add(frame, text="Image Search")
+
+    def _show_image_search(self):
+        """Switch to the image search tab and enable the search button"""
+        if self.current_file:
+            self.btn_start_search.state(["!disabled"])
+            self.search_status.config(text=f"Ready to search: {os.path.basename(self.current_file)}")
+        self.notebook.select(self.txt_search.master)
+
+    def _start_image_search(self):
+        """Start the reverse image search in a separate thread"""
+        if not self.current_file:
+            messagebox.showerror("Error", "No image selected!")
+            return
+        
+        # Update UI state
+        self.btn_start_search.state(["disabled"])
+        self.btn_stop_search.state(["!disabled"])
+        self.search_progress.start()
+        self.search_status.config(text="Initializing search...")
+        
+        # Clear previous results
+        self.txt_search.config(state="normal")
+        self.txt_search.delete("1.0", "end")
+        self.txt_search.insert("end", "🔍 Starting reverse image search...\n")
+        self.txt_search.insert("end", f"📁 Image: {os.path.basename(self.current_file)}\n")
+        self.txt_search.insert("end", "⏳ Opening browser and performing search...\n\n")
+        self.txt_search.config(state="disabled")
+        
+        # Start search in a separate thread
+        self.search_thread = threading.Thread(target=self._perform_image_search, daemon=True)
+        self.search_thread.start()
+
+    def _perform_image_search(self):
+        """Perform the actual image search (runs in separate thread)"""
+        try:
+            # Initialize IRIS
+            self.iris = ImageSearchIRIS()
+            
+            # Update status in main thread
+            self.after(0, lambda: self.search_status.config(text="Setting up browser..."))
+            
+            # Perform the search
+            success = self.iris.reverse_image_search(self.current_file)
+            
+            if success:
+                # Update UI in main thread
+                self.after(0, self._search_completed_successfully)
+            else:
+                # Update UI in main thread
+                self.after(0, self._search_failed)
+                
+        except Exception as e:
+            # Update UI in main thread
+            self.after(0, lambda: self._search_error(str(e)))
+
+    def _search_completed_successfully(self):
+        """Handle successful search completion (runs in main thread)"""
+        self.search_progress.stop()
+        self.search_status.config(text="✅ Search completed! Browser opened with results.")
+        
+        self.txt_search.config(state="normal")
+        self.txt_search.insert("end", "✅ REVERSE IMAGE SEARCH COMPLETED!\n")
+        self.txt_search.insert("end", "=" * 50 + "\n")
+        self.txt_search.insert("end", "🌐 The search results are now displayed in your browser.\n\n")
+        self.txt_search.insert("end", "🔍 You can:\n")
+        self.txt_search.insert("end", "   • Browse through visually similar images\n")
+        self.txt_search.insert("end", "   • Check pages that contain matching images\n")
+        self.txt_search.insert("end", "   • Click on any result to explore further\n")
+        self.txt_search.insert("end", "   • Use browser tools to save or analyze results\n\n")
+        self.txt_search.insert("end", "💡 The browser window will remain open for your analysis.\n")
+        self.txt_search.insert("end", "   Use the 'Stop Search' button to close it when done.\n")
+        self.txt_search.config(state="disabled")
+        
+        # Reset button states
+        self.btn_start_search.state(["!disabled"])
+
+    def _search_failed(self):
+        """Handle search failure (runs in main thread)"""
+        self.search_progress.stop()
+        self.search_status.config(text="❌ Search failed. Check the results for details.")
+        
+        self.txt_search.config(state="normal")
+        self.txt_search.insert("end", "❌ Search failed!\n")
+        self.txt_search.insert("end", "Please check your internet connection and try again.\n")
+        self.txt_search.config(state="disabled")
+        
+        # Reset button states
+        self.btn_start_search.state(["!disabled"])
+        self.btn_stop_search.state(["disabled"])
+
+    def _search_error(self, error_msg):
+        """Handle search error (runs in main thread)"""
+        self.search_progress.stop()
+        self.search_status.config(text="❌ Error occurred during search.")
+        
+        self.txt_search.config(state="normal")
+        self.txt_search.insert("end", f"❌ Error: {error_msg}\n")
+        self.txt_search.config(state="disabled")
+        
+        # Reset button states
+        self.btn_start_search.state(["!disabled"])
+        self.btn_stop_search.state(["disabled"])
+
+    def _stop_image_search(self):
+        """Stop the image search and close the browser"""
+        if self.iris:
+            try:
+                self.iris.close()
+                self.iris = None
+            except Exception as e:
+                print(f"Error closing IRIS: {e}")
+        
+        self.search_progress.stop()
+        self.search_status.config(text="🛑 Search stopped. Browser closed.")
+        
+        self.txt_search.config(state="normal")
+        self.txt_search.insert("end", "\n🛑 Search stopped by user. Browser closed.\n")
+        self.txt_search.config(state="disabled")
+        
+        # Reset button states
+        self.btn_start_search.state(["!disabled"])
+        self.btn_stop_search.state(["disabled"])
+
+    def _clear_and_rebuild_layout(self):
+        # Save the current selected file, tab, and other state before rebuilding the layout
+        file = self.current_file
+        selected_tab = self.notebook.index(self.notebook.select())  # Save the current tab index
+
+        # Close any open IRIS instance before rebuilding
+        if self.iris:
+            try:
+                self.iris.close()
+                self.iris = None
+            except:
+                pass
+
+        # Rebuild the layout (clearing and re-adding widgets)
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        # Rebuild the layout
+        self._build_layout()
+
+        # Restore the file selection and tab
+        self.current_file = file
+
+        # If the current_file is not None, update the label and enable buttons
+        if self.current_file:
+            self.lbl_file.config(text=os.path.basename(file))
+            for btn in self.action_buttons:
+                btn.state(["!disabled"])
+        else:
+            self.lbl_file.config(text="No file selected")  # Set default text if no file is selected
+
+        self.notebook.select(selected_tab)  # Restore the selected tab
+
+    def destroy(self):
+        """Override destroy to clean up resources"""
+        if self.iris:
+            try:
+                self.iris.close()
+            except:
+                pass
+        super().destroy()
 
     def toggle_dark_mode(self):
         self.is_dark_mode = not self.is_dark_mode  # Toggle the mode
