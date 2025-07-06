@@ -25,3 +25,8 @@ IRIS can also be handled implemented using python. We can fork and use [Google-R
 ## Testing
 
 This project will ideally reach a point where it is able to solve challenges without human intervention. We can perform testing by using OSINT challenges from past competitions, we have access to the [ctf-archives repository](https://github.com/sajjadium/ctf-archives) to collect OSINT challenges from a wide variety of competitions.
+
+
+## Contribuitors
+- [Alexia-Madalina Cirstea] (https://github.com/AlexiaMadalinaCirstea) (University emaiL: m.cirstea@student.maastrichtuniversity.nl) (Personal email: mmadalinacirstea@gmail.com)
+
