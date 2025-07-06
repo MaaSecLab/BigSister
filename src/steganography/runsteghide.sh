@@ -70,14 +70,16 @@ done
 [[ -z "${STEGO_FILE:-}" ]] && { echo "Error: No stego file specified." >&2; usage; }
 [[ ! -f "$STEGO_FILE" ]] && { echo "Error: File not found: $STEGO_FILE" >&2; exit 2; }
 
-# Info mode (no -sf here!)
+# Info mode
 if [[ "$INFO_ONLY" = true ]]; then
   echo "== Steghide Info for '$STEGO_FILE' =="
   if [[ -n "$PASS" ]]; then
     echo "(using passphrase)"
-    printf "%s\n" "$PASS" | "$STEGHIDE" info -v -sf "$STEGO_FILE"
+    # pipe passphrase to avoid any interactive prompt
+    printf "%s\n" "$PASS" | "$STEGHIDE" info -p "$PASS" "$STEGO_FILE"
   else
-    "$STEGHIDE" info -v -sf "$STEGO_FILE"
+    # no passphrase: just run info directly
+    "$STEGHIDE" info "$STEGO_FILE"
   fi
   exit 0
 fi
@@ -89,13 +91,15 @@ mkdir -p "$OUTDIR"
 pushd "$OUTDIR" >/dev/null
 
 if [[ -n "$PASS" ]]; then
-  printf "%s\n" "$PASS" | "$STEGHIDE" extract -sf "$STEGO_FILE"
+  # pipe passphrase and use -p and -sf flags
+  printf "%s\n" "$PASS" \
+    | "$STEGHIDE" extract -p "$PASS" -sf "$STEGO_FILE"
 else
-  "$STEGHIDE" extract -sf "$STEGO_FILE"
+  # send an empty line and use -sf
+  printf "\n" \
+    | "$STEGHIDE" extract -sf "$STEGO_FILE"
 fi
 
 popd >/dev/null
 echo "Extraction complete. Files (if any) are in '$OUTDIR'."
 
-
-#madamada

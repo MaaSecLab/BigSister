@@ -1,15 +1,25 @@
+#!/usr/bin/env python3
 """
 steghide_scraper.py
 
-Scrapes steganography metadata from images using the Steghide CLI.
+Scrapes steganography metadata from images using the Steghide CLI,
+with a passphrase derived from common EXIF fields if none is provided.
 """
 
 import subprocess
 from pathlib import Path
 import re
 
+# for deriving a passphrase from EXIF, if none supplied
+from metadata.exiftool_scraper import MetadataScraper
+
 
 class SteghideScraper:
+    # EXIF tags we’ll check for potential passphrases, in priority order
+    _PASS_TAG_CANDIDATES = [
+        "UserComment", "ImageDescription", "Comment", "Artist", "Software"
+    ]
+
     def __init__(self, steghide_path: str = "steghide"):
         """
         Initialize the SteghideScraper.
@@ -23,36 +33,61 @@ class SteghideScraper:
         """
         Scrape steghide metadata from the given file path.
 
-        This calls `steghide info` on the file and parses its output.
-        If the archive is passphrase-protected, you can provide it.
+        If no passphrase is provided, attempts to derive one
+        from EXIF metadata before calling `steghide info`.
 
         Args:
             file_path (str): Path to the steg-embedded file to analyze.
-            passphrase (str, optional): Passphrase for encrypted data.
+            passphrase (str, optional): Explicit passphrase override.
 
         Returns:
-            dict: Dictionary containing all scraped steghide metadata.
+            dict: Dictionary containing:
+              - DerivedPassphrase (if any)
+              - All steghide info fields
+              - On extract mode, any extraction data
         """
         file = Path(file_path)
         if not file.exists():
             return {"Error": f"File not found: {file_path}"}
 
-        cmd = [self.steghide_path, "info", "-v", str(file)]
+        derived = {}
+        # If user didn't supply a passphrase, peek at EXIF for clues
+        if passphrase is None:
+            exif = MetadataScraper().scrape(file_path)
+            for tag in self._PASS_TAG_CANDIDATES:
+                if tag in exif:
+                    candidate = exif[tag]
+                    # only use non-empty strings
+                    if isinstance(candidate, str) and candidate.strip():
+                        passphrase = candidate.strip()
+                        derived["DerivedPassphrase"] = {tag: passphrase}
+                        break
+
+        # build info command
+        # new
+        cmd = [self.steghide_path, "info"]
+        if passphrase:
+            cmd += ["-p", passphrase]
+        cmd += [str(file)]
+
         try:
-            # If a passphrase is needed, pipe it to stdin
+            # always send at least a newline so steghide won’t hang waiting for stdin
             result = subprocess.run(
                 cmd,
-                input=(passphrase + "\n") if passphrase else None,
+                input=(passphrase or "") + "\n",
                 capture_output=True,
                 text=True,
                 check=True,
             )
             raw = result.stdout
         except subprocess.CalledProcessError as e:
-            # steghide returns exit code 1 if no hidden data, or prompts for passphrase
-            raw = e.stdout + "\n" + e.stderr
+            raw = (e.stdout or "") + "\n" + (e.stderr or "")
 
-        return self._parse_output(raw)
+        parsed = self._parse_output(raw)
+        # merge derived passphrase if found
+        if "DerivedPassphrase" in derived:
+            parsed["DerivedPassphrase"] = derived["DerivedPassphrase"]
+        return parsed
 
     def _parse_output(self, output: str) -> dict:
         """
@@ -65,22 +100,14 @@ class SteghideScraper:
             dict: Parsed key-value metadata.
         """
         metadata = {}
-        lines = output.splitlines()
         kv_pattern = re.compile(r'^\s*([^:]+?):\s*(.+)$')
-
-        for line in lines:
-            # Match lines like "embedding algorithm: aes-128"
+        for line in output.splitlines():
             m = kv_pattern.match(line)
             if m:
-                key = m.group(1).strip()
-                val = m.group(2).strip()
-                metadata[key] = val
+                metadata[m.group(1).strip()] = m.group(2).strip()
 
-        # Detect common messages
         if not metadata:
-            # No key:value pairs found; capture entire output under a generic key
             metadata["RawOutput"] = output.strip()
-
         return metadata
 
     def display_metadata(self, metadata: dict):
@@ -108,10 +135,13 @@ class SteghideScraper:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Scrape Steghide metadata from an image file.")
+    parser = argparse.ArgumentParser(
+        description="Scrape Steghide metadata from an image file, "
+                    "deriving passphrase from EXIF if needed."
+    )
     parser.add_argument("file", help="Path to the file to inspect")
     parser.add_argument(
-        "-p", "--passphrase", help="Passphrase for encrypted steghide data", default=None
+        "-p", "--passphrase", help="Explicit passphrase for steghide data", default=None
     )
     args = parser.parse_args()
 
