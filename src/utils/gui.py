@@ -19,8 +19,13 @@ class BigSisterGUI(tk.Tk):
         self.minsize(950, 600)
         self.current_file = None
         self.is_dark_mode = False  # Track dark mode state
+        self.iris = None  # Initialize IRIS attribute
         self._set_theme()  # Apply the initial theme
         self._build_layout()
+        
+        # Ensure Contributors button is enabled by default
+        if hasattr(self, 'action_buttons') and len(self.action_buttons) > 7:
+            self.action_buttons[7].state(["!disabled"])  # Contributors button
 
     def _set_theme(self):
         style = ttk.Style(self)
@@ -94,15 +99,20 @@ class BigSisterGUI(tk.Tk):
         buttons = [
             ("🖼 View Image", self._view_image),
             ("🔍 Analyze Metadata", self._show_metadata),
-            ("🎯 IRIS Analysis", self._show_iris_analysis),  # Add this new button
+            ("🎯 IRIS Analysis", self._show_iris_analysis),
             ("🔐 Steghide Scan", self._show_steghide),
             ("🧩 Binwalk Scan", self._show_binwalk),
             ("🧬 Zsteg Scan", self._show_zsteg),
             ("🔎 Reverse Image Search", self._show_image_search),
+            ("👥 Contributors", self._show_contributors),  # Add this new button
         ]
         self.action_buttons = []
-        for label, command in buttons:
-            btn = ttk.Button(ctrl_frame, text=label, command=command, state="disabled")
+        self.action_buttons = []
+        for i, (label, command) in enumerate(buttons):
+            if label == "👥 Contributors":
+                btn = ttk.Button(ctrl_frame, text=label, command=command, state="normal")  # Always enabled
+            else:
+                btn = ttk.Button(ctrl_frame, text=label, command=command, state="disabled")
             btn.pack(fill="x", pady=4)
             self.action_buttons.append(btn)
 
@@ -117,6 +127,7 @@ class BigSisterGUI(tk.Tk):
         self._add_text_tab("Binwalk", "txt_binwalk")
         self._add_text_tab("Zsteg", "txt_zsteg")
         self._add_image_search_tab()
+        self._add_text_tab("Contributors", "txt_contributors")
 
     def _add_text_tab(self, label, attr_name):
         frame = ttk.Frame(self.notebook)
@@ -137,8 +148,13 @@ class BigSisterGUI(tk.Tk):
             return
         self.current_file = path
         self.lbl_file.config(text=os.path.basename(path))
-        for btn in self.action_buttons:
-            btn.state(["!disabled"])
+        
+        # Enable all buttons except keep Contributors always enabled
+        for i, btn in enumerate(self.action_buttons):
+            if i == 7:  # Contributors button index (0-based, counting from 0)
+                btn.state(["!disabled"])  # Keep enabled
+            else:
+                btn.state(["!disabled"])  # Enable when file is selected
 
         # Display image immediately after selecting
         self._view_image()
@@ -377,7 +393,7 @@ class BigSisterGUI(tk.Tk):
         selected_tab = self.notebook.index(self.notebook.select())  # Save the current tab index
 
         # Close any open IRIS instance before rebuilding
-        if self.iris:
+        if hasattr(self, 'iris') and self.iris:
             try:
                 self.iris.close()
                 self.iris = None
@@ -397,10 +413,16 @@ class BigSisterGUI(tk.Tk):
         # If the current_file is not None, update the label and enable buttons
         if self.current_file:
             self.lbl_file.config(text=os.path.basename(file))
-            for btn in self.action_buttons:
-                btn.state(["!disabled"])
+            for i, btn in enumerate(self.action_buttons):
+                btn.state(["!disabled"])  # Enable all buttons when file is selected
         else:
-            self.lbl_file.config(text="No file selected")  # Set default text if no file is selected
+            self.lbl_file.config(text="No file selected")
+            # Keep only Contributors button enabled when no file is selected
+            for i, btn in enumerate(self.action_buttons):
+                if i == 7:  # Contributors button index
+                    btn.state(["!disabled"])  # Keep enabled
+                else:
+                    btn.state(["disabled"])  # Disable others
 
         self.notebook.select(selected_tab)  # Restore the selected tab
 
@@ -496,6 +518,87 @@ class BigSisterGUI(tk.Tk):
         
         self.txt_meta.config(state="disabled")
         self.notebook.select(self.txt_meta.master)
+
+    def _show_contributors(self):
+        """Show project contributors and credits"""
+        contributors_text = """🎯 BIG SISTER - MaaSec's Image Metadata & Stego Analyzer
+═══════════════════════════════════════════════════════════════
+
+👨‍💻 PROJECT CONTRIBUTORS
+══════════════════════════
+
+🏆 Project Leader
+   • [Your Name] - Project Creator & Maintainer
+   • GitHub: @yourusername
+   • Role: Core architecture, GUI development, IRIS integration
+
+🔧 Main Developers
+   • [Vlad-Luca Manolescu] - MaaSec CTF Team member
+    • GitHub: https://github.com/IlikeEndermen
+    • Tasks: IRIS implementation, integration and data parsing, ExifTool implementation, Core architecture designer, Zsteg implementation
+   • [Alexia-Madalina Cirstea] - MaaSec CTF Team member
+    • GitHub: https://github.com/AlexiaMadalinaCirstea
+    • Tasks: Please fill in your tasks here
+
+
+🛠️ TECHNOLOGY STACK
+═══════════════════
+
+🖥️ Frontend:
+   • Python Tkinter - Cross-platform GUI framework
+   • PIL/Pillow - Image processing and display
+   • TTK Themes - Modern UI styling
+
+🔍 Analysis Tools:
+   • ExifTool - Comprehensive metadata extraction
+   • Steghide - Steganography detection and extraction
+   • Binwalk - Embedded file signature analysis
+   • Zsteg - LSB steganography detection
+
+🌐 IRIS (Image Search):
+   • Selenium WebDriver - Browser automation
+   • Google Images API - Reverse image search
+   • Bing Visual Search - Alternative search engine
+   • Yandex Images - Extended search capabilities
+
+📊 Data Processing:
+   • Metadata Parser - Unified data structure
+   • IRIS Parser - Search-optimized categorization
+   • JSON Configuration - Flexible tool management
+
+🏆 PROJECT STATS
+════════════════
+
+🎯 Use Cases:
+   • CTF Competitions - Image forensics challenges
+   • OSINT Investigations - Social media image analysis
+   • Digital Forensics - Metadata examination
+   • Security Research - Steganography detection
+
+🌍 OPEN SOURCE
+══════════════
+
+📜 License: MIT License
+🔗 Repository: https://github.com/yourusername/BigSister
+🐛 Issues: Report bugs and request features
+🤝 Contributions: Pull requests welcome!
+
+📚 Documentation:
+   • Setup Guide - Installation and configuration
+   • User Manual - Feature descriptions and usage
+   • API Reference - Developer documentation
+   • Contributing Guide - How to contribute
+
+
+═══════════════════════════════════════════════════════════════
+        Built with ❤️ by the MaaSec CTF Team
+═══════════════════════════════════════════════════════════════"""
+
+        self.txt_contributors.config(state="normal")
+        self.txt_contributors.delete("1.0", "end")
+        self.txt_contributors.insert("end", contributors_text)
+        self.txt_contributors.config(state="disabled")
+        self.notebook.select(self.txt_contributors.master)
 
 
 def startGUI():
