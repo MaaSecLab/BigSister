@@ -93,6 +93,7 @@ class BigSisterGUI(tk.Tk):
         buttons = [
             ("🖼 View Image", self._view_image),
             ("🔍 Analyze Metadata", self._show_metadata),
+            ("🎯 IRIS Analysis", self._show_iris_analysis),  # Add this new button
             ("🔐 Steghide Scan", self._show_steghide),
             ("🧩 Binwalk Scan", self._show_binwalk),
             ("🧬 Zsteg Scan", self._show_zsteg),
@@ -438,6 +439,57 @@ class BigSisterGUI(tk.Tk):
             self.lbl_file.config(text="No file selected")  # Set default text if no file is selected
 
         self.notebook.select(selected_tab)  # Restore the selected tab
+
+    def _show_iris_analysis(self):
+        """Show IRIS categorization analysis"""
+        print("=" * 50)
+        print("CALLING IRIS ANALYSIS FROM DEDICATED BUTTON")
+        print("=" * 50)
+        
+        scraper = MetadataScraper()
+        data = scraper.scrape(self.current_file)
+        parser = MetadataParser()
+        parsed = parser.parse_exif(data)
+        categorized = parser.categorize_exif_for_iris(parsed)
+        search_terms = parser.get_iris_search_terms(categorized)
+        
+        # Display in a new tab or reuse existing metadata tab
+        self.txt_meta.config(state="normal")
+        self.txt_meta.delete("1.0", "end")
+        
+        self.txt_meta.insert("end", "🎯 IRIS METADATA ANALYSIS\n")
+        self.txt_meta.insert("end", "=" * 50 + "\n\n")
+        
+        self.txt_meta.insert("end", f"📊 Overall Confidence Score: {categorized['confidence_score']:.2f}\n\n")
+        
+        # Show each category
+        categories = [
+            ("📷 Device Information", categorized['device_info']),
+            ("📍 Location Data", categorized['location_data']),
+            ("🕒 Temporal Data", categorized['temporal_data']),
+            ("⚙️ Technical Specifications", categorized['technical_specs'])
+        ]
+        
+        for title, data_dict in categories:
+            if data_dict:
+                self.txt_meta.insert("end", f"{title}:\n")
+                for k, v in data_dict.items():
+                    self.txt_meta.insert("end", f"  • {k}: {v}\n")
+                self.txt_meta.insert("end", "\n")
+        
+        if categorized['search_keywords']:
+            self.txt_meta.insert("end", "🔍 All Generated Keywords:\n")
+            for keyword in categorized['search_keywords']:
+                self.txt_meta.insert("end", f"  • {keyword}\n")
+            self.txt_meta.insert("end", "\n")
+        
+        if search_terms:
+            self.txt_meta.insert("end", "🎯 Priority Search Terms for IRIS:\n")
+            for i, term in enumerate(search_terms, 1):
+                self.txt_meta.insert("end", f"  {i}. {term}\n")
+        
+        self.txt_meta.config(state="disabled")
+        self.notebook.select(self.txt_meta.master)
 
 
 def startGUI():
