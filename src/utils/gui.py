@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import os, subprocess, shutil
 
 from metadata.parser import MetadataParser
+from metadata.iris_parser import IrisParser
 from metadata.exiftool_scraper import MetadataScraper
 from steganography.steghide_scraper import SteghideScraper
 from steganography.binwalk_scraper import BinwalkScraper
@@ -448,10 +449,15 @@ class BigSisterGUI(tk.Tk):
         
         scraper = MetadataScraper()
         data = scraper.scrape(self.current_file)
-        parser = MetadataParser()
-        parsed = parser.parse_exif(data)
-        categorized = parser.categorize_exif_for_iris(parsed)
-        search_terms = parser.get_iris_search_terms(categorized)
+        
+        # Use MetadataParser to parse the EXIF data first
+        metadata_parser = MetadataParser()
+        parsed = metadata_parser.parse_exif(data)
+        
+        # Then use IrisParser for categorization and search terms
+        iris_parser = IrisParser()
+        categorized = iris_parser.categorize_exif_for_iris(parsed)
+        search_terms = iris_parser.get_iris_search_terms(categorized)
         
         # Display in a new tab or reuse existing metadata tab
         self.txt_meta.config(state="normal")
