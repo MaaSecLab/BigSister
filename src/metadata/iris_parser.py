@@ -164,11 +164,11 @@ class IrisParser:
             ('Make', 'camera_make'),
             ('Model', 'camera_model'),
             ('Software', 'software'),
-            ('Camera Make', 'camera_make'),
-            ('Camera Model', 'camera_model'),
-            ('Camera Software', 'software'),
-            ('Lens Make', 'lens_make'),
-            ('Lens Model', 'lens_model')
+            ('CameraMake', 'camera_make'),
+            ('CameraModel', 'camera_model'),
+            ('CameraSoftware', 'software'),
+            ('LensMake', 'lens_make'),
+            ('LensModel', 'lens_model')
         ]
         
         print("DEBUG: Processing device fields...")
@@ -182,14 +182,14 @@ class IrisParser:
         
         # Location Data
         location_fields = [
-            ('GPS Latitude', 'latitude'),
-            ('GPS Longitude', 'longitude'),
-            ('GPS Altitude', 'altitude'),
+            ('GPSLatitude', 'latitude'),
+            ('GPSLongitude', 'longitude'),
+            ('GPSAltitude', 'altitude'),
             ('Location', 'location_name'),
             ('City', 'city'),
             ('State', 'state'),
             ('Country', 'country'),
-            ('GPS Position', 'coordinates')
+            ('GPSPosition', 'coordinates')
         ]
         
         print("DEBUG: Processing location fields...")
@@ -210,8 +210,8 @@ class IrisParser:
         temporal_fields = [
             ('DateTime', 'creation_date'),
             ('Date/Time Original', 'original_date'),
-            ('Create Date', 'create_date'),
-            ('Modify Date', 'modify_date'),
+            ('CreateDate', 'create_date'),
+            ('ModifyDate', 'modify_date'),
             ('DateTimeOriginal', 'datetime_original')
         ]
         
@@ -234,15 +234,15 @@ class IrisParser:
         technical_fields = [
             ('ISO', 'iso'),
             ('Aperture', 'aperture'),
-            ('Shutter Speed', 'shutter_speed'),
-            ('Focal Length', 'focal_length'),
+            ('ShutterSpeed', 'shutter_speed'),
+            ('FocalLength', 'focal_length'),
             ('Flash', 'flash_used'),
-            ('White Balance', 'white_balance'),
-            ('Exposure Mode', 'exposure_mode'),
-            ('Image Width', 'width'),
-            ('Image Height', 'height'),
+            ('WhiteBalance', 'white_balance'),
+            ('ExposureMode', 'exposure_mode'),
+            ('ImageWidth', 'width'),
+            ('ImageHeight', 'height'),
             ('Resolution', 'resolution'),
-            ('Color Space', 'color_space')
+            ('ColorSpace', 'color_space')
         ]
         
         print("DEBUG: Processing technical fields...")
