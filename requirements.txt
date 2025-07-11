@@ -1,0 +1,8 @@
+# requirements.txt
+pillow
+selenium
+webdriver-manager
+tkinter-tooltip
+requests
+beautifulsoup4
+lxml

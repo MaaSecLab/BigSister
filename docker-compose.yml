@@ -1,0 +1,6 @@
+# docker-compose.yml
+services:
+  bigsister:
+    build: .
+    volumes:
+      - .:/app

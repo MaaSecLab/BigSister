@@ -1,0 +1,14 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Virtual Environment folders
+# (Good practice to add this in case someone uses a venv)
+venv/
+*env/
+env/
+
+# IDE and OS-specific files
+.vscode/
+.idea/
+.DS_Store
