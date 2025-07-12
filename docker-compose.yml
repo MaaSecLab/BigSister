@@ -2,5 +2,12 @@
 services:
   bigsister:
     build: .
+    environment:
+      - DISPLAY=$DISPLAY
     volumes:
+      # Map X11 file for GUI
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      # Make current host directory available within container as /app
       - .:/app
+      # Example for making other directories available
+      #- ~/Downloads:/downloads
