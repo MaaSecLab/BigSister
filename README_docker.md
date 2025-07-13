@@ -25,8 +25,20 @@ To run the tool:
 docker compose run --rm bigsister
 ```
 
-To see the help message:
+### 4. GUI VS Terminal
+
+When starting the application, you will be given two choices:
 
 ```bash
-docker compose run --rm bigsister --help
+=== Big Sister - Metadata and Image Analysis Tool ===
+Choose your interface:
+1. GUI (Graphical User Interface)
+2. Terminal (Command Line Interface)
+Enter 1 or 2:
+```
+
+If you want to use **terminal option (1)**, you need to specify the file, like this:
+
+```bash
+docker compose run --rm bigsister /downloads/example_image.jpeg
 ```
