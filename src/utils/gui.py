@@ -19,6 +19,7 @@ class BigSisterGUI(tk.Tk):
         self.minsize(950, 600)
         self.current_file = None
         self.is_dark_mode = False  # Track dark mode state
+        self.browse_image_widgets = []
         self.iris = None  # Initialize IRIS attribute
         self._set_theme()  # Apply the initial theme
         self._build_layout()
@@ -133,6 +134,7 @@ class BigSisterGUI(tk.Tk):
         frame = ttk.Frame(self.notebook)
         textbox = tk.Text(frame, wrap="word", bg=self.textbox_bg, relief="flat", font=("Consolas", 10), fg=self.textbox_fg)
         textbox.pack(fill="both", expand=True, padx=10, pady=10)
+        self._create_browse_image_widget(textbox)
         setattr(self, attr_name, textbox)
         self.notebook.add(frame, text=label)
 
@@ -140,9 +142,24 @@ class BigSisterGUI(tk.Tk):
         frame = ttk.Frame(self.notebook)
         self.canvas = tk.Canvas(frame, background=self.textbox_bg, relief="flat")
         self.canvas.pack(fill="both", expand=True, padx=10, pady=10)
+        self._create_browse_image_widget(self.canvas, padding_x=10, padding_y=10)
         self.notebook.add(frame, text="Image View")
 
+    def _create_browse_image_widget(self, parent, padding_x: int = 0, padding_y: int = 0):
+        container = ttk.Frame(parent)
+        container.pack(fill="both", padx=padding_x, pady= padding_y)
+        ttk.Label(container, text="📁 Select Image", style="SubHeader.TLabel").pack(anchor="w", pady=(10, 5))
+        ttk.Button(container, text="Browse...", command=self._browse_file).pack(fill="x")
+        self.lbl_file = ttk.Label(container, text="No file selected", wraplength=230)
+        self.lbl_file.pack(fill="x", pady=(5, 15))
+        self.browse_image_widgets.append(container)
+
+
     def _browse_file(self):
+        # Delete browse image widgets
+        [container.pack_forget() for container in self.browse_image_widgets]
+
+        # Open file selection
         path = filedialog.askopenfilename(filetypes=[("Images", "*.jpg *.jpeg *.png *.bmp *.gif *.webp *.tiff")])
         if not path:
             return
