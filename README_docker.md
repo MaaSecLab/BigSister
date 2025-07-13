@@ -19,13 +19,15 @@ docker compose build
 
 ### 3. Running the Tool
 
-To run the tool:
+To run the tool, you need to use this command:
 
 ```bash
 docker compose run --rm bigsister
 ```
 
-### 4. GUI VS Terminal
+There are 2 different versions of the app (terminal and GUI), read instructions below.
+
+#### Terminal App
 
 When starting the application, you will be given two choices:
 
@@ -42,3 +44,56 @@ If you want to use **terminal option (1)**, you need to specify the file, like t
 ```bash
 docker compose run --rm bigsister /downloads/example_image.jpeg
 ```
+
+#### GUI App
+
+- **Linux**
+
+  Before running the app, make sure to run:
+
+  ```bash
+  xhost +local:
+  ```
+
+  With this commad you are adding non-network local connections to your access control list. Without this command you will see `Authorization required, but no authorization protocol specified`.
+
+  Then, you can run as usual:
+
+  ```bash
+  docker compose run --rm bigsister
+  ```
+
+- **Windows**
+
+  Use [x11docker](https://github.com/mviereck/x11docker)
+
+- **MacOS**
+
+  Use [distrobox](https://github.com/89luca89/distrobox)
+
+### 4. Get access to the files
+
+By default Docker containers do not get access to the file system of the host.
+
+In order to pass files to be analyzed, you need to map Docker volumes in the `docker-compose.yml`. We map current directory and `~/Downloads` by default:
+
+```bash
+volumes:
+      # Map X11 file for GUI
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      # Make current host directory available within container as /app
+      - .:/app
+      # Example for making other directories available
+      - ~/Downloads:/Downloads
+```
+
+With this setup you can reference files, like this:
+
+```bash
+# A file in current directory
+$ docker compose run --rm bigsister image.png
+# Another file in host's ~/Downloads
+$ docker compose run --rm bigsister /Downloads/another.png
+```
+
+You can add more directories by modifying `docker-compose.yml`
