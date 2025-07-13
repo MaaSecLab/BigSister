@@ -121,7 +121,6 @@ a consistent Python dictionary schema.
                 })
         return {'Signatures': signatures}
     
-    
 
     def get_metadata(self):
         """

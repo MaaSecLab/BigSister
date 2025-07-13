@@ -6,19 +6,43 @@ Scrapes file signatures and extraction info using the Binwalk CLI.
 """
 
 import subprocess
+import platform
+import shlex
 import re
 from pathlib import Path
 
 
 class BinwalkScraper:
-    def __init__(self, binwalk_path: str = "binwalk"):
+    def __init__(self, binwalk_path: str = None):
         """
         Initialize the BinwalkScraper.
 
         Args:
-            binwalk_path (str): Path to the Binwalk executable.
+            binwalk_path (str): Custom path or command for Binwalk. If None, auto-select based on platform.
         """
-        self.binwalk_path = binwalk_path
+        if binwalk_path:
+            self.binwalk_path = binwalk_path
+        elif platform.system() == "Windows":
+            self.binwalk_path = "wsl binwalk"
+        else:
+            self.binwalk_path = "binwalk"
+
+    def _convert_to_wsl_path(self, path: Path) -> str:
+        """
+        Convert a Windows-style path to WSL (/mnt/c/...) format, if needed.
+
+        Args:
+            path (Path): The original file path.
+
+        Returns:
+            str: Converted path string suitable for WSL binwalk.
+        """
+        if platform.system() == "Windows" and self.binwalk_path.startswith("wsl"):
+            resolved = path.resolve()
+            drive = resolved.drive[0].lower()  # 'C:...' → 'c'
+            wsl_path = f"/mnt/{drive}{resolved.as_posix()[2:]}"  # strip 'C:'
+            return wsl_path
+        return str(path)
 
     def scrape(self, file_path: str, extract: bool = False, extract_dir: str = None) -> dict:
         """
@@ -36,12 +60,14 @@ class BinwalkScraper:
         if not file.exists():
             return {"Error": f"File not found: {file_path}"}
 
-        cmd = [self.binwalk_path]
+        cmd = shlex.split(self.binwalk_path)
         if extract:
             cmd.append("-e")
             if extract_dir:
                 cmd.extend(["-C", str(extract_dir)])
-        cmd.append(str(file))
+
+        # Convert path for WSL if needed
+        cmd.append(self._convert_to_wsl_path(file))
 
         try:
             result = subprocess.run(
@@ -49,7 +75,7 @@ class BinwalkScraper:
             )
             raw = result.stdout
         except subprocess.CalledProcessError as e:
-            raw = e.stdout + "\n" + e.stderr
+            raw = (e.stdout or "") + "\n" + (e.stderr or "")
 
         data = self._parse_output(raw)
         data["RawOutput"] = raw

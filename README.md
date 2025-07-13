@@ -30,3 +30,4 @@ This project will ideally reach a point where it is able to solve challenges wit
 ## Contribuitors
 - [Alexia-Madalina Cirstea] (https://github.com/AlexiaMadalinaCirstea) (University emaiL: m.cirstea@student.maastrichtuniversity.nl) (Personal email: mmadalinacirstea@gmail.com)
 
+- [Vlad-Luca Manolescu] (https://github.com/IlikeEndermen) (University emaiL: v.manolescu@student.maastrichtuniversity.nl) (Personal email: vvladmlg@gmail.com)
