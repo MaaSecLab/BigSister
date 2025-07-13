@@ -39,7 +39,7 @@ Choose your interface:
 Enter 1 or 2:
 ```
 
-If you want to use **terminal option (1)**, you need to specify the file, like this:
+If you want to use **terminal option (2)**, you need to specify the file, like this:
 
 ```bash
 docker compose run --rm bigsister /downloads/example_image.jpeg
