@@ -278,6 +278,7 @@ class BigSisterGUI(tk.Tk):
         textbox = tk.Text(frame, wrap="word", bg=self.textbox_bg, relief="flat", 
                          font=("Consolas", 10), fg=self.textbox_fg)
         textbox.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self._create_browse_image_widget(textbox)
         self.txt_search = textbox
         
         self.notebook.add(frame, text="Image Search")
