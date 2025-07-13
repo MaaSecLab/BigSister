@@ -10,4 +10,4 @@ services:
       # Make current host directory available within container as /app
       - .:/app
       # Example for making other directories available
-      - ~/Downloads:/downloads
+      - ~/Downloads:/Downloads
