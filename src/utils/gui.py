@@ -10,6 +10,7 @@ from metadata.exiftool_scraper import MetadataScraper
 from steganography.steghide_scraper import SteghideScraper
 from steganography.binwalk_scraper import BinwalkScraper
 from iris.image_search import ImageSearchIRIS
+from steganography.zsteg_scraper import run_zsteg, parse_and_group_zsteg
 
 class BigSisterGUI(tk.Tk):
     def __init__(self):
@@ -213,19 +214,23 @@ class BigSisterGUI(tk.Tk):
         self.notebook.select(self.txt_binwalk.master)
 
     def _show_zsteg(self):
-        self.txt_zsteg.config(state="normal")
-        self.txt_zsteg.delete("1.0", "end")
-        if not shutil.which("zsteg"):
-            self.txt_zsteg.insert("end", "zsteg is not installed. Please run: gem install zsteg")
-        else:
-            try:
-                result = subprocess.run(["zsteg", self.current_file],
-                                        capture_output=True, text=True, timeout=60)
-                self.txt_zsteg.insert("end", result.stdout or result.stderr or "No zsteg output.")
-            except Exception as e:
-                self.txt_zsteg.insert("end", f"Error: {str(e)}")
-        self.txt_zsteg.config(state="disabled")
-        self.notebook.select(self.txt_zsteg.master)
+        def zsteg_worker():
+            self.txt_zsteg.config(state="normal")
+            self.txt_zsteg.delete("1.0", "end")
+            self.txt_zsteg.insert("end", "🧬 Running Zsteg scan...\nPlease wait...\n\n")
+            self.txt_zsteg.config(state="disabled")
+            self.notebook.select(self.txt_zsteg.master)
+
+            output = run_zsteg(self.current_file)
+
+            self.txt_zsteg.config(state="normal")
+            self.txt_zsteg.delete("1.0", "end")
+            parsed_output = parse_and_group_zsteg(output)
+            self.txt_zsteg.insert("end", parsed_output)
+            self.txt_zsteg.config(state="disabled")
+
+    # Run the Zsteg scan in a background thread
+        threading.Thread(target=zsteg_worker, daemon=True).start()
 
     def _add_image_search_tab(self):
         """Add a tab for reverse image search functionality"""
