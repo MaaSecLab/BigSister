@@ -10,7 +10,9 @@ def to_wsl_path(win_path: str) -> str:
     win_path = os.path.abspath(win_path)
     drive, path_rest = os.path.splitdrive(win_path)
     drive_letter = drive.strip(":").lower()
-    return f"/mnt/{drive_letter}{path_rest.replace('\\', '/')}"
+    unix_path = path_rest.replace("\\", "/")
+    return f"/mnt/{drive_letter}{unix_path}"
+
 
 
 def run_zsteg(image_path: str) -> str:

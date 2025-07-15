@@ -7,3 +7,4 @@ requests
 beautifulsoup4
 lxml
 pytesseract
+opencv-python-headless
