@@ -12,6 +12,9 @@ from steganography.binwalk_scraper import BinwalkScraper
 from iris.image_search import ImageSearchIRIS
 from steganography.zsteg_scraper import run_zsteg, parse_and_group_zsteg
 
+from ocr.ocr_engine import OCREngine
+
+
 class BigSisterGUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -105,6 +108,7 @@ class BigSisterGUI(tk.Tk):
             ("🧩 Binwalk Scan", self._show_binwalk),
             ("🧬 Zsteg Scan", self._show_zsteg),
             ("🔎 Reverse Image Search", self._show_image_search),
+            ("🧠 OCR Text Scan", self._show_ocr),
             ("👥 Contributors", self._show_contributors),  # Add this new button
         ]
         self.action_buttons = []
@@ -128,6 +132,7 @@ class BigSisterGUI(tk.Tk):
         self._add_text_tab("Binwalk", "txt_binwalk")
         self._add_text_tab("Zsteg", "txt_zsteg")
         self._add_image_search_tab()
+        self._add_text_tab("OCR Output", "txt_ocr")
         self._add_text_tab("Contributors", "txt_contributors")
 
     def _add_text_tab(self, label, attr_name):
@@ -523,6 +528,29 @@ class BigSisterGUI(tk.Tk):
         
         self.txt_meta.config(state="disabled")
         self.notebook.select(self.txt_meta.master)
+
+    def _show_ocr(self):
+        if not self.current_file:
+            messagebox.showwarning("No File", "Please select an image file first.")
+            return
+
+        # Instantiate the OCR engine (optional: set tesseract_cmd)
+        ocr_engine = OCREngine(tesseract_cmd=r"C:\Program Files\Tesseract-OCR\tesseract.exe")  # Update if needed
+
+        # Run OCR
+        result = ocr_engine.extract_text_from_image(self.current_file, return_data=False)
+
+        # Display result
+        self.txt_ocr.config(state="normal")
+        self.txt_ocr.delete("1.0", "end")
+        if result["success"]:
+            self.txt_ocr.insert("end", f"🧠 OCR Result (in {result['time']}s):\n\n{result['text']}")
+        else:
+            self.txt_ocr.insert("end", f"❌ OCR Failed:\n{result['error']}")
+        self.txt_ocr.config(state="disabled")
+
+        self.notebook.select(self.txt_ocr.master)
+
 
     def _show_contributors(self):
         """Show project contributors and credits"""

@@ -1,0 +1,49 @@
+[2025-07-15 14:22:58,018] INFO - Image preprocessing completed.
+[2025-07-15 14:22:58,029] ERROR - OCR processing failed
+Traceback (most recent call last):
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\site-packages\pytesseract\pytesseract.py", line 275, in run_tesseract
+    proc = subprocess.Popen(cmd_args, **subprocess_args())
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1039, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1554, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+                             # no special security
+                             ^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+                             cwd,
+                             ^^^^
+                             startupinfo)
+                             ^^^^^^^^^^^^
+FileNotFoundError: [WinError 2] The system cannot find the file specified
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\User\Desktop\BigSister\BigSister\src\ocr\ocr_engine.py", line 101, in extract_text_from_image
+    raw_text = pytesseract.image_to_string(processed_img, lang=lang, config=config)
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\site-packages\pytesseract\pytesseract.py", line 486, in image_to_string
+    return {
+           ~
+    ...<2 lines>...
+        Output.STRING: lambda: run_and_get_output(*args),
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }[output_type]()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\site-packages\pytesseract\pytesseract.py", line 489, in <lambda>
+    Output.STRING: lambda: run_and_get_output(*args),
+                           ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\site-packages\pytesseract\pytesseract.py", line 352, in run_and_get_output
+    run_tesseract(**kwargs)
+    ~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\User\AppData\Local\Programs\Python\Python313\Lib\site-packages\pytesseract\pytesseract.py", line 280, in run_tesseract
+    raise TesseractNotFoundError()
+pytesseract.pytesseract.TesseractNotFoundError: C:\Program Files\Tesseract-OCR\tesseract.exe is not installed or it's not in your PATH. See README file for more information.

@@ -6,3 +6,4 @@ tkinter-tooltip
 requests
 beautifulsoup4
 lxml
+pytesseract
