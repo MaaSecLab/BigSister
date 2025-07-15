@@ -1,0 +1,60 @@
+├── bin/
+│   ├── tesseract.exe
+│   └── tessdata/       ← includes all `.traineddata` files
+
+
+✅ Step-by-Step: Download Tesseract (Portable Version)
+🔗 Official Build (Recommended for Windows):
+Download from UB Mannheim Tesseract GitHub
+
+📥 Direct Link (as of July 2025):
+⚠️ Download the .zip portable version — not the installer (.exe).
+
+Go to: https://github.com/UB-Mannheim/tesseract/wiki
+
+Look for a section like “Download Tesseract OCR Setup (or Portable)”
+
+Click on the ZIP file under "Windows 64-bit Portable Archive"
+
+Example file:
+
+arduino
+Copy
+Edit
+tesseract-ocr-w64-setup-v5.3.1.20230401-portable.zip
+📁 After You Extract the ZIP
+You’ll get a structure like this:
+
+vbnet
+Copy
+Edit
+tesseract-portable/
+├── tesseract.exe             ✅ THIS IS WHAT YOU NEED
+├── tessdata/                 ✅ KEEP ENTIRE FOLDER
+│   ├── eng.traineddata
+│   ├── osd.traineddata
+│   └── ...
+├── ...
+📂 Move It Into Your Project
+Copy the contents like this:
+
+python
+Copy
+Edit
+BigSister/
+├── bin/
+│   ├── tesseract.exe
+│   └── tessdata/
+│       ├── eng.traineddata
+│       └── osd.traineddata
+✅ You can strip out unused languages to reduce size (e.g., only keep eng.traineddata and osd.traineddata)
+
+🧠 Bonus: Language Packs
+Each .traineddata file inside tessdata/ represents a language.
+
+Want more languages?
+
+Download them from: https://github.com/tesseract-ocr/tessdata
+
+Drop them inside your tessdata/ folder
+
