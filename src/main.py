@@ -38,6 +38,13 @@ def run_metadata_chain(file_path: str) -> dict:
     raw_exif = exif_scraper.scrape(file_path)
     print("\n[ Raw EXIFTool Output ]")
     exif_scraper.display_metadata(raw_exif)
+
+    exif_anomalies = exif_scraper.check_timestamp_anomaly(file_path, raw_exif)
+    if exif_anomalies:
+        print("\n[ EXIF Timestamp Anomalies ]")
+        for k, v in exif_anomalies.items():
+            print(f"{k:25}: {v}")
+
     parsed_exif = parser.parse_exif(raw_exif)
     print("\n[ Parsed EXIF Metadata ]")
     for k, v in parsed_exif.items():

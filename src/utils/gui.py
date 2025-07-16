@@ -184,10 +184,24 @@ class BigSisterGUI(tk.Tk):
         scraper = MetadataScraper()
         data = scraper.scrape(self.current_file)
         parsed = MetadataParser().parse_exif(data)
+
+        anomalies = scraper.check_timestamp_anomaly(self.current_file, data)
+
         self.txt_meta.config(state="normal")
         self.txt_meta.delete("1.0", "end")
+
         for k, v in parsed.items():
             self.txt_meta.insert("end", f"{k:25}: {v}\n")
+
+        #print anomalies if there are any
+        if anomalies:
+            self.txt_meta.insert("end", "\n⚠️  ANOMALIES DETECTED\n")
+            self.txt_meta.insert("end", "=" * 50 + "\n")
+            for k, v in anomalies.items():
+                self.txt_meta.insert("end", f"🚨 {k}: {v}\n")
+        else:
+            self.txt_meta.insert("end", "\n✅ No timestamp anomalies detected.\n")
+
         self.txt_meta.config(state="disabled")
         self.notebook.select(self.txt_meta.master)
 

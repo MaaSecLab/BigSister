@@ -12,6 +12,8 @@ from pathlib import Path
 from PIL import Image
 from PIL.ExifTags import TAGS
 
+import os
+from datetime import datetime
 
 class MetadataScraper:
     def __init__(self, exiftool_path: str = "exiftool"):
@@ -118,3 +120,55 @@ class MetadataScraper:
         for k, v in sorted(metadata.items()):
             print(f"{k:{key_width}}: {v}")
         print(separator)
+
+    def check_timestamp_anomaly(self, file_path: str, metadata: dict) -> dict:
+        """
+        Compare EXIF timestamps to filesystem timestamps.
+
+        Arguments:
+            file_path (str): Path to the image file.
+            metadata (dict): Metadata dict from ExifTool or Pillow.
+
+        Returns:
+            dict: Dictionary with anomaly info or empty if none.
+        """
+        anomalies={} #initialize empty dictionary
+
+        #get EXIF timestamp
+        exif_time_str=metadata.get("DateTimeOriginal") or metadata.get("CreateDate") or metadata.get("DateTime")
+        if not exif_time_str:
+            anomalies["Timestamp"] = "No EXIF timestamp found."
+            return anomalies #exit early if no exif time :(
+        
+        #parse EXIF timestamp (convert to python datetime object)
+        try:
+            exif_time = datetime.strptime(exif_time_str, "%Y:%m:%d %H:%M:%S")
+        except ValueError:
+            anomalies["Timestamp"] = f"Could not parse EXIF timestamp: {exif_time_str}"
+            return anomalies
+        
+        #get filesystem timestamp
+        try:
+            file_stats = os.stat(file_path)
+            fs_modified = datetime.fromtimestamp(file_stats.st_mtime)
+            fs_created = datetime.fromtimestamp(file_stats.st_ctime)
+        except Exception as e:
+            anomalies["Error"] = f"Could not get filesystem timestamps: {e}"
+            return anomalies
+        
+        #compare - check if difference is more than 5 minutes
+        #Modified mismatch → maybe the file was edited
+        if round(abs((fs_modified - exif_time).total_seconds()), 3) > 100:
+            anomalies["Modified Time Mismatch"] = {
+                "EXIF": exif_time.isoformat(),
+                "Filesystem": fs_modified.isoformat(),
+                "DeltaSeconds": abs((fs_modified - exif_time).total_seconds())
+            }
+        #Created mismatch → maybe the file was copied/moved long after creation
+        if round(abs((fs_created - exif_time).total_seconds()), 3) > 100:
+            anomalies["Created Time Mismatch"] = {
+                "EXIF": exif_time.isoformat(),
+                "Filesystem": fs_created.isoformat(),
+                "DeltaSeconds": abs((fs_created - exif_time).total_seconds())
+            }
+        return anomalies
