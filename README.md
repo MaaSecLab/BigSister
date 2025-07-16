@@ -27,7 +27,7 @@ IRIS can also be handled implemented using python. We can fork and use [Google-R
 This project will ideally reach a point where it is able to solve challenges without human intervention. We can perform testing by using OSINT challenges from past competitions, we have access to the [ctf-archives repository](https://github.com/sajjadium/ctf-archives) to collect OSINT challenges from a wide variety of competitions.
 
 
-## Contribuitors
+## Contributors
 - [Alexia-Madalina Cirstea] (https://github.com/AlexiaMadalinaCirstea) (University emaiL: m.cirstea@student.maastrichtuniversity.nl) (Personal email: mmadalinacirstea@gmail.com)
 
 - [Vlad-Luca Manolescu] (https://github.com/IlikeEndermen) (University emaiL: v.manolescu@student.maastrichtuniversity.nl) (Personal email: vvladmlg@gmail.com)
@@ -367,6 +367,7 @@ A Python class `MetadataScraper` that:
 - Falls back to `PIL.Image._getexif()` for basic tags if ExifTool is unavailable
 - Merges parsed JSON or Pillow EXIF into a single `dict`
 - Provides `display_metadata()` to format and print tag names and values
+- Detects timestamp inconsistencies between EXIF and filesystem metadata as potential anomalies
 
 ---
 

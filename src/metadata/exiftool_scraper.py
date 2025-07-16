@@ -156,7 +156,7 @@ class MetadataScraper:
             anomalies["Error"] = f"Could not get filesystem timestamps: {e}"
             return anomalies
         
-        #compare - check if difference is more than 5 minutes
+        #compare - check if difference is more than 100 seconds
         #Modified mismatch → maybe the file was edited
         if round(abs((fs_modified - exif_time).total_seconds()), 3) > 100:
             anomalies["Modified Time Mismatch"] = {
