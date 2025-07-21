@@ -22,6 +22,8 @@ from iris.image_search import ImageSearchIRIS
 # Interfaces
 from utils.gui import startGUI
 
+from steganography.video_stego_scanner import VideoStegoScanner
+
 
 def run_metadata_chain(file_path: str) -> dict:
     """
@@ -125,7 +127,23 @@ def terminal_mode():
         action="store_true",
         help="Perform reverse-image search after metadata scraping",
     )
+    ap.add_argument(
+        "--scan-video",
+        metavar="FILE",
+        help="Run video stego scan on a video file",
+    )
+
     args = ap.parse_args()
+
+    if args.scan_video:
+        scanner = VideoStegoScanner()
+        report = scanner.scan_video(args.scan_video)
+
+        print("\n🎯 Video Stego Scan Summary:")
+        print("Suspicious:", report["suspicious"])
+        print("Flagged frames:", len(report["flagged_frames"]), "/", report["total_frames"])
+        return
+
 
     fp = Path(args.file)
     if not fp.is_file():

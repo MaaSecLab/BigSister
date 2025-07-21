@@ -11,7 +11,7 @@ from steganography.steghide_scraper import SteghideScraper
 from steganography.binwalk_scraper import BinwalkScraper
 from iris.image_search import ImageSearchIRIS
 from steganography.zsteg_scraper import run_zsteg, parse_and_group_zsteg
-
+from video_stego_scanner import VideoStegoScanner
 from ocr.ocr_engine import OCREngine
 
 
@@ -109,6 +109,7 @@ class BigSisterGUI(tk.Tk):
             ("🧬 Zsteg Scan", self._show_zsteg),
             ("🔎 Reverse Image Search", self._show_image_search),
             ("🧠 OCR Text Scan", self._show_ocr),
+            ("🎥 Video Stego Scan", self._show_video_stego),
             ("👥 Contributors", self._show_contributors),  # Add this new button
         ]
         self.action_buttons = []
@@ -564,6 +565,42 @@ class BigSisterGUI(tk.Tk):
         self.txt_ocr.config(state="disabled")
 
         self.notebook.select(self.txt_ocr.master)
+
+    def _show_video_stego(self):
+        path = filedialog.askopenfilename(filetypes=[("Video", "*.mp4 *.mov *.avi *.mkv")])
+        if not path:
+            return
+
+        self.txt_meta.config(state="normal")
+        self.txt_meta.delete("1.0", "end")
+        self.txt_meta.insert("end", f"🎥 Running Video Stego Scan on:\n{os.path.basename(path)}\nPlease wait...\n")
+        self.txt_meta.config(state="disabled")
+        self.notebook.select(self.txt_meta.master)
+        threading.Thread(target=lambda: self.worker(path), daemon=True).start()
+
+    def worker(self, path):
+        scanner = VideoStegoScanner()
+        report = scanner.scan_video(path)
+        self.after(0, lambda: self._display_video_report(report))
+        #self.after(0, lambda: self._display_video_report(report))
+        #threading.Thread(target=lambda: self.worker(path), daemon=True).start()
+        #threading.Thread(target=worker, daemon=True).start()
+
+
+    def _display_video_report(self, report):
+        txt = self.txt_meta
+        txt.config(state="normal")
+        txt.delete("1.0", "end")
+        txt.insert("end", "🎯 Video Steganography Scan Report\n")
+        txt.insert("end", "="*50 + "\n")
+        txt.insert("end", f"Suspicious: {report['suspicious']}\n")
+        txt.insert("end", f"Flagged Frames: {len(report['flagged_frames'])} / {report['total_frames']}\n\n")
+        if report['flagged_frames']:
+            txt.insert("end", "🚨 Frames flagged:\n")
+            for fr in report['flagged_frames']:
+                txt.insert("end", f"  • {fr}\n")
+        txt.config(state="disabled")
+
 
 
     def _show_contributors(self):

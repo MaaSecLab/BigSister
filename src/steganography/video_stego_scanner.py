@@ -18,6 +18,7 @@ import tempfile
 import shutil  #fix?
 from steganography.zsteg_scraper import run_zsteg  #check if works correctly
 from steganography.steghide_scraper import SteghideScraper 
+from steganography.binwalk_scraper import BinwalkScraper
 
 
 class VideoStegoScanner:
@@ -54,15 +55,16 @@ class VideoStegoScanner:
     #TO DO: MAKE SUSPICIOUS LOGIC SMARTER, rn its only string matching
     def scan_frames(self, frame_dir:str) -> dict:
         """
-        Scans each extracted frame for steganographic content using zsteg and steghide.
+        Scans each extracted frame for steganographic content using zsteg, steghide, and binwalk.
 
         Arguments:
             frame_dir: Directory containing extracted PNG frames.
 
         Returns:
-            dict: Mapping of frame filename → {zsteg result, steghide result}
+            dict: Mapping of frame filename → {zsteg result, steghide result, binwalk result}
         """
         results={}
+        binwalk = BinwalkScraper()
 
         for file in os.listdir(frame_dir):
             if not file.endswith(".png"):  #accept only png
@@ -73,10 +75,12 @@ class VideoStegoScanner:
 
             zsteg_result = run_zsteg(full_path)
             steghide_result = SteghideScraper().scrape(full_path)
+            binwalk_result = binwalk.scrape(full_path)
 
             results[file] = {
                 "zsteg": zsteg_result,
-                "steghide": steghide_result
+                "steghide": steghide_result,
+                "binwalk": binwalk_result
             }
 
         return results
@@ -102,9 +106,17 @@ class VideoStegoScanner:
             total = len(results)
             flagged = []
 
+            # for frame, data in results.items():
+            #     if ("detected" in data["zsteg"].lower()) or \
+            #         ("Steghide" in data["steghide"] and "data" in str(data["steghide"])):
+            #         flagged.append(frame)
+
             for frame, data in results.items():
-                if ("detected" in data["zsteg"].lower()) or \
-                    ("Steghide" in data["steghide"] and "data" in str(data["steghide"])):
+                suspicious_zsteg = "detected" in data["zsteg"].lower()
+                suspicious_steghide = "Steghide" in data["steghide"] and "data" in str(data["steghide"])
+                suspicious_binwalk = len(data.get("binwalk", {}).get("Signatures", [])) > 0
+
+                if suspicious_zsteg or suspicious_steghide or suspicious_binwalk:
                     flagged.append(frame)
 
             suspicious = len(flagged) / total > threshold if total else False
