@@ -32,9 +32,6 @@ This project will ideally reach a point where it is able to solve challenges wit
 
 - [Vlad-Luca Manolescu] (https://github.com/IlikeEndermen) (University emaiL: v.manolescu@student.maastrichtuniversity.nl) (Personal email: vvladmlg@gmail.com)
 
-- [Irina Iarlykanova] (https://github.com/Irench1k) (University email: i.iarlykanova@student.maastrichtuniversity.nl) (Personal email: irina.iarlykanova@gmail.com)
-
-
 # Complete Installation & Setup Guide
 
 ## Overview
